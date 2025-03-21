@@ -1,8 +1,10 @@
 import express from 'express'
-import createTemplate from './createTemplate'
 import bodyParser from 'body-parser'
 import fs from 'fs'
 import path from 'path'
+import {generatePdf} from './listDetailedPdf/DetailedPdfUI'
+import dotenv from 'dotenv'
+dotenv.config();
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -30,7 +32,10 @@ app.post('/', async (req, res) => {
       console.log("jsonData", process.env.STORE_REQUEST_JSON);
       if (process.env.STORE_REQUEST_JSON) {
         console.log("test mode, writing request to file");
-        fs.writeFileSync(path.join(process.cwd(), "requests", `${Date.now()}.json`), req.body);
+        fs.writeFileSync(
+          path.join(process.cwd(), "requests", `${Date.now()}.json`),
+          JSON.stringify(req.body, null, 2)
+        );
         console.log("request written to file");
       }
       console.time("PDF Generation Time");
@@ -43,21 +48,29 @@ app.post('/', async (req, res) => {
         });
         res.end("test");
         console.time("pdf generation");
-        createTemplate(req.body)
+        generatePdf(req.body)
           .then((pdfStream) => {
             console.timeEnd("pdf generation");
-            const chunks: Buffer[] = [];
-            pdfStream.on('data', (chunk) => chunks.push(chunk));
-            pdfStream.on('end', () => {
-              const pdfBuffer = Buffer.concat(chunks);
-              fs.writeFileSync(path.join(process.cwd(), "generatedPdf", `${Date.now()}.pdf`), pdfBuffer);
+            const filePath = path.join(process.cwd(), "generatedPdf", `${Date.now()}.pdf`);
+            const writeStream = fs.createWriteStream(filePath);
+
+            pdfStream.pipe(writeStream);
+
+            writeStream.on('finish', () => {
+              console.log(`PDF successfully written to ${filePath}`);
+            });
+
+            writeStream.on('error', (err) => {
+              console.error("Error writing PDF to file:", err);
             });
           })
           .catch((err) => {
-            console.error("PDF Generation Error:", err);
+            console.error("PDF Generation Error file store error:", err);
+            res.writeHead(500, { "Content-Type": "text/plain" });
+            res.end("Internal Server Error");
           });
       } else {
-        createTemplate(req.body)
+        generatePdf(req.body)
           .then((pdfStream) => {
             res.writeHead(200, {
               "Content-Type": "application/pdf",

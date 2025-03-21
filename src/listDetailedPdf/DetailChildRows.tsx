@@ -44,7 +44,7 @@ export const GenListPdfDetailChildRow1 = ({
 				return (
 					<RowCell
 						isSum={isSum}
-						key={columnId + idx}
+						keyItem={columnId + index}
 						cellValue={cellValue}
 						columnId={columnId}
 						idx={idx}
@@ -66,7 +66,7 @@ type cellProps = {
 	groupTotals: any;
 	showTotals: boolean;
 	style: Style | undefined;
-	key: string;
+	keyItem: string;
 };
 
 const RowCell = ({
@@ -77,12 +77,12 @@ const RowCell = ({
 	groupTotals,
 	showTotals,
 	style = {},
-	key,
+	keyItem,
 }: cellProps) => {
 	const { maxWidth, minWidth, width, ...cellStyle } = style;
 	return (
 		<View
-			key={key}
+			key={keyItem}
 			style={{
 				flexDirection: "column",
 				maxWidth: maxWidth,

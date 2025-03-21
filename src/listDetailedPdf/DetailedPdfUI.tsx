@@ -1,5 +1,5 @@
 import React from 'react';
-import { Document, Page, Text, View, Font } from '@react-pdf/renderer';
+import { Document, Page, Text, View, Font, renderToStream } from '@react-pdf/renderer';
 import GenListPdfDetailTableTitles from "./GenListPdfDetailTableTitles.js";
 import GenListPdfDetailHeader from "./GenListPdfDetailHeader.js";
 import { GenListPdfDetailChildRow1 } from "./DetailChildRows.js";
@@ -38,7 +38,7 @@ Font.register({
 	fonts: [{ src: path.join(fontPath, "Roboto-Medium.ttf") }],
 });
 
-export function ListDetailedWebWorkerPDF({data}: any) {
+function ReportPdfUI({data}: any) {
 		// data contains all the info we need to create pdf.
 		console.log("list detailed pdf data recieved");
 	const {
@@ -100,11 +100,9 @@ export function ListDetailedWebWorkerPDF({data}: any) {
 						)}
 						{filteredData.map((row: any, index: number) => {
 							const showTotals = index === filteredData.length - 1 || row.depth > filteredData[index + 1]?.depth;
-							console.log("row", row);
 							if (row.depth < filteredData[index - 1]?.depth) groupTotals = {};
 							if (row.depth === grouping.length) {
 								nonGroupColumns.forEach((colId: any) => {
-									console.log("columnDefMap[colId]", columnDefMap[colId]);
 									groupTotals[colId] = Number(groupTotals[colId] || 0) + Number(row._valuesCache[colId]);
 								});
 							}
@@ -168,3 +166,8 @@ export function ListDetailedWebWorkerPDF({data}: any) {
 		</Document>
 	);
 }
+
+
+export const generatePdf = (data: any) => {
+	return renderToStream(<ReportPdfUI data={data} />)
+  }

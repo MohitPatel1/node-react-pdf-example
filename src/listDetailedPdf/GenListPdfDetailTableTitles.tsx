@@ -26,11 +26,10 @@ export default function GenListPdfDetailTableTitles({
 			{nonGroupColumns.map((headerId: string, idx: number) => {
 				const columnWidth: any =
 					(columnDefMap[headerId].pdfStyle.style.width || 0) + (extraWidthExpandablePerColumn > 0 ? extraWidthExpandablePerColumn : 0);
-
 				return (
 					<HeaderText
+						headerKey={headerId}
 						header={columnDefMap[headerId].header}
-						key={headerId + idx}
 						printPercentages={printPercentages}
 						i={idx}
 						style={{ width: columnWidth, fontSize: 10 }}
@@ -41,24 +40,24 @@ export default function GenListPdfDetailTableTitles({
 	);
 }
 
-export const HeaderText = ({
+const HeaderText = ({
 	header,
 	i,
 	style,
 	printPercentages,
-	key,
+	headerKey,
 }: {
 	header: string;
 	i: number;
 	style: Style;
 	printPercentages: any;
-	key: string;
+	headerKey: string;
 }) => {
-	const { maxWidth, minWidth, width: colWidth, ...cellStyle } = style;
+	const { maxWidth, minWidth, width: colWidth } = style;
 	const width = typeof colWidth === "number" && printPercentages ? colWidth + 35 : colWidth;
 	return (
 		<View
-			key={key}
+			key={headerKey}
 			style={{
 				maxWidth,
 				minWidth,
