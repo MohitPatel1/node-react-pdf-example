@@ -16,3 +16,6 @@ dist/
 # Dependency lock files
 package-lock.json
 yarn.lock
+
+requests
+generatedPDf
