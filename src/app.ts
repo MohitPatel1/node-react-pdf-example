@@ -25,16 +25,59 @@ app.post('/', async (req, res) => {
         : (pageWidth - req.body.pdfSettings.totalColWidth) / req.body.nonGroupColumns.length
       : 0;
     req.body.extraWidthExpandablePerColumn = extraWidthExpandablePerColumn;
-    const result = await createTemplate(req.body);
-    let fileName = `pdf-${Date.now()}.pdf`
-    // fs.writeFileSync(fileName, result);
-
-    // Setting up the response headers
-    res.setHeader('Content-Type', 'application/pdf')
-    res.setHeader('Content-Disposition', `attachment; filename=${fileName}`)
-
-    // Streaming our resulting pdf back to the user
-    result.pipe(res)
+    try {
+      console.log("req received");
+      console.log("jsonData", process.env.STORE_REQUEST_JSON);
+      if (process.env.STORE_REQUEST_JSON) {
+        console.log("test mode, writing request to file");
+        fs.writeFileSync(path.join(process.cwd(), "requests", `${Date.now()}.json`), req.body);
+        console.log("request written to file");
+      }
+      console.time("PDF Generation Time");
+      // Generate the PDF and stream it directly
+      if (process.env.STORE_RESPONSE_PDF) {
+        console.log("starting pdf generation");
+        res.writeHead(200, {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": 'attachment; filename="generated.pdf"',
+        });
+        res.end("test");
+        console.time("pdf generation");
+        createTemplate(req.body)
+          .then((pdfStream) => {
+            console.timeEnd("pdf generation");
+            const chunks: Buffer[] = [];
+            pdfStream.on('data', (chunk) => chunks.push(chunk));
+            pdfStream.on('end', () => {
+              const pdfBuffer = Buffer.concat(chunks);
+              fs.writeFileSync(path.join(process.cwd(), "generatedPdf", `${Date.now()}.pdf`), pdfBuffer);
+            });
+          })
+          .catch((err) => {
+            console.error("PDF Generation Error:", err);
+          });
+      } else {
+        createTemplate(req.body)
+          .then((pdfStream) => {
+            res.writeHead(200, {
+              "Content-Type": "application/pdf",
+              "Content-Disposition": 'attachment; filename="generated.pdf"',
+            });
+            console.timeEnd("PDF Generation Time");
+            console.log("pdf generated, streaming now...");
+            pdfStream.pipe(res)
+          })
+          .catch((err) => {
+            console.error("PDF Generation Error:", err);
+            res.writeHead(500, { "Content-Type": "text/plain" });
+            res.end("Internal Server Error");
+          });
+      }
+    } catch (error) {
+      console.error("Error processing request:", error);
+      res.writeHead(400, { "Content-Type": "text/plain" });
+      res.end("Bad Request");
+    }
   } catch (error) {
     console.error('Error processing request:', error)
     res.status(500).send('Internal Server Error')
