@@ -1,7 +1,7 @@
 import React from 'react';
 import { workerData, parentPort } from 'worker_threads';
 import { renderToStream } from '@react-pdf/renderer';
-import { ReportPdfUI } from './listDetailedPdf/ReportPdfUI';
+import { generateStreamingPDF } from './listDetailedPdf/ReportPdfUI';
 
 export async function generatePDF(data) {
   // Extract worker data
@@ -10,12 +10,11 @@ export async function generatePDF(data) {
 
   console.log("Generating PDF");
   try {
-    const pdfStream = await renderToStream(<ReportPdfUI data={pdfData} />);
-    
-    // Stream chunks back to main thread as they become available
+    // const pdfStream = await renderToStream(<ReportPdfUI data={pdfData} />);
+const pdfStream = await generateStreamingPDF(pdfData);// Stream chunks back to main thread as they become available
     pdfStream.on('data', (chunk) => {
       console.log("Sending chunk to main thread");
-      parentPort.postMessage({
+      parentPort.postMessage({  
         type: 'data',
         buffer: chunk
       });

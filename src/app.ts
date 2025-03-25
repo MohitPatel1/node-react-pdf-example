@@ -3,7 +3,6 @@ const { Worker } = require('worker_threads');
 import bodyParser from 'body-parser'
 import fs from 'fs'
 import path from 'path'
-import { generatePDF } from './pdfworker'
 import dotenv from 'dotenv'
 import cors from 'cors'
 dotenv.config();
