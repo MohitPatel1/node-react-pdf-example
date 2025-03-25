@@ -31,6 +31,7 @@ app.post('/', async (req, res) => {
         : (pageWidth - req.body.pdfSettings.totalColWidth) / req.body.nonGroupColumns.length
       : 0;
     req.body.extraWidthExpandablePerColumn = extraWidthExpandablePerColumn;
+    req.body.filteredData = req.body.filteredData.slice(0, 1000);
     try {
       console.log("req received");
       console.log("jsonData", process.env.STORE_REQUEST_JSON);
@@ -78,6 +79,10 @@ app.post('/', async (req, res) => {
             } else if (message.type === 'end') {
               res.end();
               console.log("res end");
+
+              // Log the timestamp at the end of PDF generation
+              const timestamp = new Date().toISOString();
+              console.log(`PDF generation completed at: ${timestamp}`);
             } else if (message.type === 'progress') {
               console.log(`Progress: ${message.current}/${message.total} chunks processed`);
             } else if (message.type === 'error') {

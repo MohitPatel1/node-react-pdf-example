@@ -43,6 +43,7 @@ export const GenListPdfDetailChildRow1 = ({
 
 				return (
 					<RowCell
+						key={idx}
 						isSum={isSum}
 						keyItem={columnId + index}
 						cellValue={cellValue}

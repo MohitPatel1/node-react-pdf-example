@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Document, Page, Text, View, Font, renderToStream } from '@react-pdf/renderer';
 import GenListPdfDetailTableTitles from "./GenListPdfDetailTableTitles.js";
 import GenListPdfDetailHeader from "./GenListPdfDetailHeader.js";
@@ -12,7 +12,7 @@ import fs from 'fs';
 // Logging utility
 const logger = {
     info: (message: string) => {
-        if (process.env.PDF_GENERATION_LOGS === 'true') {
+        if (process.env.PDF_GENERATION_LOGS) {
             console.log(`[PDF Generator] ${message}`);
         }
     },
@@ -67,10 +67,10 @@ export function ReportPdfUI({ data }: any) {
         logger.info(`Total rows to process: ${filteredData.length}`);
 
         // Create column definition map
-        const columnDefMap = columnDef.reduce((acc: any, col: any) => {
+        const columnDefMap = useMemo(() => columnDef.reduce((acc: any, col: any) => {
             acc[col.id] = col;
             return acc;
-        }, {});
+        }, {}), [columnDef]);
 
         // Configure rows per page
         const rowsPerPage = 50;
@@ -140,7 +140,7 @@ export function ReportPdfUI({ data }: any) {
 
                                     return (
                                         <View
-                                            key={row.id}
+                                            key={index}
                                             wrap={false}
                                             break={columnDefMap[row.groupingColumnId].header === pdfSettings.newPageforEvery}
                                         >
@@ -160,7 +160,7 @@ export function ReportPdfUI({ data }: any) {
 
                                 return (
                                     <GenListPdfDetailChildRow1
-                                        key={row.id}
+                                        key={index}
                                         index={index}
                                         nonGroupColumns={nonGroupColumns}
                                         extraWidthExpandablePerColumn={extraWidthExpandablePerColumn}
@@ -186,7 +186,7 @@ export function ReportPdfUI({ data }: any) {
 
             // Add page to pages array
             pages.push(pageComponent);
-
+            console.log("pages", pageComponent);
             logger.info(`Page ${pageIndex + 1} generated successfully`);
         }
 
@@ -205,6 +205,7 @@ export function ReportPdfUI({ data }: any) {
 // Streaming utility function
 export async function generateStreamingPDF(pdfData: any) {
     try {
+        console.log("pdfData", pdfData);
         const startTime = performance.now();
 
         // Use renderToStream with the PDF generator

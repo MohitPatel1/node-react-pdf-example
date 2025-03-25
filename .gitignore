@@ -19,5 +19,6 @@ yarn.lock
 
 requests
 generatedPdf
+generatedPDF
 
 .env

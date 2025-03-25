@@ -30,8 +30,8 @@ export const HeaderRegular = ({ fixed, godName, headerRightStrings, styles, comp
 									</Text>
 								);
 							})}
-						{company?.contacts[0]?.email && (
-							<Text style={{ textTransform: "none", fontSize: 10 }}>{`Email: ${company?.contacts[0]?.email || ""}`}</Text>
+						{company?.contacts?.[0]?.email && (
+							<Text style={{ textTransform: "none", fontSize: 10 }}>{`Email: ${company?.contacts?.[0]?.email || ""}`}</Text>
 						)}
 						{company?.website && <Text style={{ textTransform: "none", fontSize: 10 }}>{`Website: ${company?.website || ""}`}</Text>}
 

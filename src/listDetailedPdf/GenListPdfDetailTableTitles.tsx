@@ -28,6 +28,7 @@ export default function GenListPdfDetailTableTitles({
 					(columnDefMap[headerId].pdfStyle.style.width || 0) + (extraWidthExpandablePerColumn > 0 ? extraWidthExpandablePerColumn : 0);
 				return (
 					<HeaderText
+						key={headerId}
 						headerKey={headerId}
 						header={columnDefMap[headerId].header}
 						printPercentages={printPercentages}
