@@ -1,5 +1,5 @@
 import React from 'react';
-import { Document, Page, Text, View, Font, renderToStream } from '@react-pdf/renderer';
+import { Document, Page, Text, View, Font } from '@react-pdf/renderer';
 import GenListPdfDetailTableTitles from "./GenListPdfDetailTableTitles.js";
 import GenListPdfDetailHeader from "./GenListPdfDetailHeader.js";
 import { GenListPdfDetailChildRow1 } from "./DetailChildRows.js";
@@ -166,8 +166,3 @@ export function ReportPdfUI({data}: any) {
 		</Document>
 	);
 }
-
-
-export const generatePdf = (data: any) => {
-	return renderToStream(<ReportPdfUI data={data} />)
-  }

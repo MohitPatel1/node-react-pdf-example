@@ -19,3 +19,5 @@ yarn.lock
 
 requests
 generatedPdf
+
+.env

@@ -3,9 +3,12 @@ const { Worker } = require('worker_threads');
 import bodyParser from 'body-parser'
 import fs from 'fs'
 import path from 'path'
-import { generatePdf } from './listDetailedPdf/ReportPdfUI'
+import { generatePDF } from './pdfworker'
 import dotenv from 'dotenv'
+import cors from 'cors'
 dotenv.config();
+
+console.log('Environment variables loaded:', process.env);
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -13,6 +16,7 @@ const port = process.env.PORT || 3000
 // Add body-parser middleware with increased size limit
 app.use(bodyParser.json({ limit: '100mb' })) // Adjust the limit as needed
 app.use(bodyParser.urlencoded({ extended: true, limit: '100mb' }))
+app.use(cors())
 
 app.get('/', (req, res) => {
   res.send('Hello From PDF Service!')
@@ -39,6 +43,8 @@ app.post('/', async (req, res) => {
         );
         console.log("request written to file");
       }
+
+      
       console.time("PDF Generation Time");
       // Generate the PDF and stream it directly
       if (process.env.STORE_RESPONSE_PDF) {
@@ -50,100 +56,61 @@ app.post('/', async (req, res) => {
         // res.end("test");
         console.time("pdf generation");
 
-
-
-        // worker thread
-
-
         const workerOptions = {
           workerData: {
             data: req.body,
-            chunkSize: 1000,
-            itemsPerPage: 60,
-            // Add configuration options
             config: {
               fontCaching: true,
               compressionLevel: 9,  // Max compression to reduce memory usage
               bufferPages: false     // Don't buffer pages in memory
             }
-          },
-          resourceLimits: {
-            maxOldGenerationSizeMb: 512,  // Limit memory for the worker
           }
         };
+        console.log("worker path", path.join(__dirname, 'pdfworker.js'));
+        try {
+          const workerPath = path.join(__dirname, 'pdfworker.js');
+          console.log("Attempting to start worker with path:", workerPath);
+          const worker = await new Worker(workerPath, workerOptions);
 
-        const worker = new Worker(path.join(__dirname, 'pdfworker.js'), workerOptions);
-
-        worker.on('message', (message) => {
-          if (message.type === 'data') {
-            res.write(Buffer.from(message.buffer));
-          } else if (message.type === 'end') {
-            res.end();
-          } else if (message.type === 'progress') {
-            console.log(`Progress: ${message.current}/${message.total} chunks processed`);
-            // Could emit progress via SSE on a different connection
-          } else if (message.type === 'error') {
-            console.error('PDF generation error:', message.message);
-            res.status(500).end('PDF generation failed');
-          }
-        });
-
-        worker.on('error', (err) => {
-          console.error('Worker error:', err);
-          if (!res.headersSent) {
-            res.status(500).send('Error generating PDF');
-          } else {
-            res.end();
-          }
-        });
-
-        // Handle client disconnection
-        req.on('close', () => {
-          worker.terminate();
-        });
-
-
-
-
-
-
-        generatePdf(req.body)
-          .then((pdfStream) => {
-            console.timeEnd("pdf generation");
-            const filePath = path.join(process.cwd(), "generatedPdf", `${Date.now()}.pdf`);
-            const writeStream = fs.createWriteStream(filePath);
-
-            pdfStream.pipe(writeStream);
-
-            writeStream.on('finish', () => {
-              console.log(`PDF successfully written to ${filePath}`);
-            });
-
-            writeStream.on('error', (err) => {
-              console.error("Error writing PDF to file:", err);
-            });
-          })
-          .catch((err) => {
-            console.error("PDF Generation Error file store error:", err);
-            res.writeHead(500, { "Content-Type": "text/plain" });
-            res.end("Internal Server Error");
+          worker.on('message', (message) => {
+            console.log("message", message);
+            if (message.type === 'data') {
+              res.write(Buffer.from(message.buffer));
+            } else if (message.type === 'end') {
+              res.end();
+              console.log("res end");
+            } else if (message.type === 'progress') {
+              console.log(`Progress: ${message.current}/${message.total} chunks processed`);
+            } else if (message.type === 'error') {
+              console.error('PDF generation error:', message.message);
+              res.status(500).end('PDF generation failed');
+            }
           });
-      } else {
-        generatePdf(req.body)
-          .then((pdfStream) => {
-            res.writeHead(200, {
-              "Content-Type": "application/pdf",
-              "Content-Disposition": 'attachment; filename="generated.pdf"',
-            });
-            console.timeEnd("PDF Generation Time");
-            console.log("pdf generated, streaming now...");
-            pdfStream.pipe(res)
-          })
-          .catch((err) => {
-            console.error("PDF Generation Error:", err);
-            res.writeHead(500, { "Content-Type": "text/plain" });
-            res.end("Internal Server Error");
+
+          worker.on('error', (err) => {
+            console.error('Worker error:', err);
+            if (!res.headersSent) {
+              res.status(500).send('Error generating PDF');
+            } else {
+              res.end();
+            }
           });
+
+          worker.on('exit', (code) => {
+            if (code !== 0) {
+              console.error(`Worker stopped with exit code ${code}`);
+            }
+          });
+
+          // Handle client disconnection
+          req.on('close', () => {
+            worker.terminate();
+          });
+          console.log("app ts end");
+        } catch (err) {
+          console.error('Failed to start worker:', err);
+          res.status(500).send('Failed to start PDF generation');
+        }
       }
     } catch (error) {
       console.error("Error processing request:", error);

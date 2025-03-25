@@ -1,39 +1,27 @@
-// pdfWorker.js
-import { workerData, parentPort } from 'worker_threads';
 import React from 'react';
-import { Document, Page, Text, pdf, StyleSheet, renderToStream } from '@react-pdf/renderer';
-import { PDFDocument } from 'pdf-lib';
-import { PassThrough } from 'stream';
+import { workerData, parentPort } from 'worker_threads';
+import { renderToStream } from '@react-pdf/renderer';
 import { ReportPdfUI } from './listDetailedPdf/ReportPdfUI';
 
+export async function generatePDF(data) {
+  // Extract worker data
+  const pdfData = data || workerData.data;
+  console.log("pdfData", pdfData);
 
-// Extract worker data
-const { data, chunkSize, itemsPerPage } = workerData;
-
-// Create styles
-const styles = StyleSheet.create({
-  page: {
-    padding: 30,
-    flexDirection: 'column',
-  },
-  item: {
-    margin: 3,
-    fontSize: 10,
-  },
-});
-
-async function generatePDF() {
+  console.log("Generating PDF");
   try {
-    const pdfStream = await renderToStream(<ReportPdfUI data={data} />);
+    const pdfStream = await renderToStream(<ReportPdfUI data={pdfData} />);
     
     // Stream chunks back to main thread as they become available
     pdfStream.on('data', (chunk) => {
+      console.log("Sending chunk to main thread");
       parentPort.postMessage({
         type: 'data',
         buffer: chunk
       });
     });
     pdfStream.on('end', () => {
+      console.log("End of PDF stream");
       parentPort.postMessage({ type: 'end' });
     });
     
@@ -44,9 +32,6 @@ async function generatePDF() {
       });
     });
     
-    // Signal that we're done
-    parentPort.postMessage({ type: 'end' });
-    
   } catch (error) {
     parentPort.postMessage({ 
       type: 'error', 
@@ -55,5 +40,15 @@ async function generatePDF() {
   }
 }
 
-// Start PDF generation
-generatePDF();
+// Listen for messages from the main thread
+parentPort.on('message', (message) => {
+  if (message.type === 'start') {
+    generatePDF(message.data);
+  }
+});
+
+// Auto-start when worker is loaded if workerData contains data
+if (workerData && workerData.data) {
+  console.log("Worker starting with initial data");
+  generatePDF(workerData.data);
+}
