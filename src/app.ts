@@ -73,7 +73,7 @@ app.post('/', async (req, res) => {
           const worker = await new Worker(workerPath, workerOptions);
 
           worker.on('message', (message) => {
-            console.log("message", message);
+            console.log("message");
             if (message.type === 'data') {
               res.write(Buffer.from(message.buffer));
             } else if (message.type === 'end') {
