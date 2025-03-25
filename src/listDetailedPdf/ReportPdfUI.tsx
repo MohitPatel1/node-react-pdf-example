@@ -38,7 +38,7 @@ Font.register({
 	fonts: [{ src: path.join(fontPath, "Roboto-Medium.ttf") }],
 });
 
-function ReportPdfUI({data}: any) {
+export function ReportPdfUI({data}: any) {
 		// data contains all the info we need to create pdf.
 		console.log("list detailed pdf data recieved");
 	const {

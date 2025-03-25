@@ -1,8 +1,9 @@
 import express from 'express'
+const { Worker } = require('worker_threads');
 import bodyParser from 'body-parser'
 import fs from 'fs'
 import path from 'path'
-import {generatePdf} from './listDetailedPdf/DetailedPdfUI'
+import { generatePdf } from './listDetailedPdf/ReportPdfUI'
 import dotenv from 'dotenv'
 dotenv.config();
 
@@ -46,8 +47,66 @@ app.post('/', async (req, res) => {
           "Content-Type": "application/pdf",
           "Content-Disposition": 'attachment; filename="generated.pdf"',
         });
-        res.end("test");
+        // res.end("test");
         console.time("pdf generation");
+
+
+
+        // worker thread
+
+
+        const workerOptions = {
+          workerData: {
+            data: req.body,
+            chunkSize: 1000,
+            itemsPerPage: 60,
+            // Add configuration options
+            config: {
+              fontCaching: true,
+              compressionLevel: 9,  // Max compression to reduce memory usage
+              bufferPages: false     // Don't buffer pages in memory
+            }
+          },
+          resourceLimits: {
+            maxOldGenerationSizeMb: 512,  // Limit memory for the worker
+          }
+        };
+
+        const worker = new Worker(path.join(__dirname, 'pdfworker.js'), workerOptions);
+
+        worker.on('message', (message) => {
+          if (message.type === 'data') {
+            res.write(Buffer.from(message.buffer));
+          } else if (message.type === 'end') {
+            res.end();
+          } else if (message.type === 'progress') {
+            console.log(`Progress: ${message.current}/${message.total} chunks processed`);
+            // Could emit progress via SSE on a different connection
+          } else if (message.type === 'error') {
+            console.error('PDF generation error:', message.message);
+            res.status(500).end('PDF generation failed');
+          }
+        });
+
+        worker.on('error', (err) => {
+          console.error('Worker error:', err);
+          if (!res.headersSent) {
+            res.status(500).send('Error generating PDF');
+          } else {
+            res.end();
+          }
+        });
+
+        // Handle client disconnection
+        req.on('close', () => {
+          worker.terminate();
+        });
+
+
+
+
+
+
         generatePdf(req.body)
           .then((pdfStream) => {
             console.timeEnd("pdf generation");
