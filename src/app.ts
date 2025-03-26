@@ -31,7 +31,7 @@ app.post('/', async (req, res) => {
         : (pageWidth - req.body.pdfSettings.totalColWidth) / req.body.nonGroupColumns.length
       : 0;
     req.body.extraWidthExpandablePerColumn = extraWidthExpandablePerColumn;
-    req.body.filteredData = req.body.filteredData.slice(0, 1000);
+    req.body.filteredData = req.body.filteredData.slice(0, 10000);
     try {
       console.log("req received");
       console.log("jsonData", process.env.STORE_REQUEST_JSON);

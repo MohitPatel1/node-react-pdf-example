@@ -40,7 +40,7 @@ try {
     logger.error(`Font registration failed: ${fontError.message}`);
 }
 
-export function ReportPdfUI({ data }: any) {
+export function ReportPdfUI({ data, filteredData }: any) {
     try {
         if (!data) {
             logger.error('No data provided for PDF generation');
@@ -56,7 +56,6 @@ export function ReportPdfUI({ data }: any) {
             grouping,
             columnDef,
             nonGroupColumns,
-            filteredData,
             godName,
             lists,
             extraWidthExpandablePerColumn,
@@ -73,7 +72,7 @@ export function ReportPdfUI({ data }: any) {
         }, {}), [columnDef]);
 
         // Configure rows per page
-        const rowsPerPage = 50;
+        const rowsPerPage = 100;
 
         // Generate pages array
         const pages = [];
@@ -203,13 +202,12 @@ export function ReportPdfUI({ data }: any) {
 }
 
 // Streaming utility function
-export async function generateStreamingPDF(pdfData: any) {
+export async function generateStreamingPDF({pdfData, filteredData}) {
     try {
-        console.log("pdfData", pdfData);
         const startTime = performance.now();
 
         // Use renderToStream with the PDF generator
-        const pdfStream = await renderToStream(<ReportPdfUI data={pdfData} />);
+        const pdfStream = await renderToStream(<ReportPdfUI data={pdfData} filteredData={filteredData}/>);
         if (process.env.STORE_RESPONSE_PDF) {
             const writeStream = fs.createWriteStream('generatedPDF/workerThread12.pdf');
             pdfStream.pipe(writeStream);
