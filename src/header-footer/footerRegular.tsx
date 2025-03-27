@@ -6,7 +6,7 @@ const FooterRegular = ({ styles, printedBy, printContinue = true, border, ...pro
 		<View style={{ ...styles.footer, borderTopWidth: border ? 1 : 0, flexDirection: "row" }} {...props} break>
 			<View>
 				<Text>Printed by: {printedBy}</Text>
-				<Text>{new Date().toLocaleString()}</Text>
+				<Text>{new Date().toLocaleString("en-IN")}</Text>
 			</View>
 			<View>
 				<Text

@@ -7,7 +7,6 @@ export default function GenListPdfDetailTableTitles({
 	extraWidthExpandablePerColumn,
 	nonGroupColumns,
 	columnDefMap,
-	printPercentages,
 }: any) {
 	// 6
 	return (
@@ -24,16 +23,15 @@ export default function GenListPdfDetailTableTitles({
 			}}
 		>
 			{nonGroupColumns.map((headerId: string, idx: number) => {
-				const columnWidth: any =
-					(columnDefMap[headerId].pdfStyle.style.width || 0) + (extraWidthExpandablePerColumn > 0 ? extraWidthExpandablePerColumn : 0);
+				// const columnWidth: number = Number(columnDefMap[headerId].pdfStyle.style.width || 0) + nonGroupedExpandableColumns.includes(headerId) ? (extraWidthExpandablePerColumn > 0 ? extraWidthExpandablePerColumn : 0) : 0;
+				const columnWidth: number = Number(columnDefMap[headerId].pdfStyle.style.width || 0) + Number(extraWidthExpandablePerColumn || 0) + 35;
 				return (
 					<HeaderText
 						key={headerId}
 						headerKey={headerId}
 						header={columnDefMap[headerId].header}
-						printPercentages={printPercentages}
 						i={idx}
-						style={{ width: columnWidth, fontSize: 10 }}
+						style={{ width: columnWidth, fontSize: 10, fontFamily: "Roboto-bold" }}
 					/>
 				);
 			})}
@@ -45,24 +43,18 @@ const HeaderText = ({
 	header,
 	i,
 	style,
-	printPercentages,
 	headerKey,
 }: {
 	header: string;
 	i: number;
 	style: Style;
-	printPercentages: any;
 	headerKey: string;
 }) => {
-	const { maxWidth, minWidth, width: colWidth } = style;
-	const width = typeof colWidth === "number" && printPercentages ? colWidth + 35 : colWidth;
 	return (
 		<View
 			key={headerKey}
 			style={{
-				maxWidth,
-				minWidth,
-				width,
+				...style,
 				...(i === 0 ? {} : pdfStyles.leftLightBorder),
 			}}
 		>

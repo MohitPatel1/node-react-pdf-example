@@ -92,7 +92,6 @@ export function ReportPdfUI({ data }: any) {
                         {(grouping?.length === 0) && (
                             <GenListPdfDetailTableTitles
                                 extraWidthExpandablePerColumn={extraWidthExpandablePerColumn}
-                                nonGroupedExpandableColumns={pdfSettings.nonGroupedExpandableColumns}
                                 nonGroupColumns={nonGroupColumns}
                                 columnDefMap={columnDefMap}
                             />
@@ -138,7 +137,6 @@ export function ReportPdfUI({ data }: any) {
                                             row.depth === 0 && (
                                                 <GenListPdfDetailTableTitles
                                                     extraWidthExpandablePerColumn={extraWidthExpandablePerColumn}
-                                                    nonGroupedExpandableColumns={pdfSettings.nonGroupedExpandableColumns}
                                                     nonGroupColumns={nonGroupColumns}
                                                     columnDefMap={columnDefMap}
                                                 />
@@ -167,7 +165,7 @@ export function ReportPdfUI({ data }: any) {
                     choice={"Footer - Regular"}
                     fixed={true}
                     border={true}
-                    printContinue={true}
+                    printContinue={false}
                     printedBy={userData.user_name}
                     styles={pdfStyles}
                 />
