@@ -1,5 +1,5 @@
 {
-  "name": "react-pdf-example",
+  "name": "pdf-service-sa",
   "version": "1.0.0",
   "description": "use @react-pdf/renderer and express to generate pdf files",
   "scripts": {
@@ -10,7 +10,7 @@
     "start": "node build/app.js"
   },
   "keywords": [],
-  "author": "ryozm<ryozming@gmail.com>",
+  "author": "mohit<mohit@teziapp.com>",
   "license": "MIT",
   "dependencies": {
     "@react-pdf/renderer": "^3.3.4",
@@ -26,6 +26,7 @@
     "pdf-lib": "^1.17.1",
     "pdf-merger-js": "^5.1.2",
     "react": "^18.2.0",
+    "serverless-http": "^3.2.0",
     "stream": "^0.0.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
