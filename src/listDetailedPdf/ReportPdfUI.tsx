@@ -133,6 +133,17 @@ export function ReportPdfUI({ data }: any) {
                                             sumColumns={sumColumns}
                                             lists={lists}
                                         />
+                                        {
+                                            // shows column titles. ex: date, inv no, due days
+                                            row.depth === 0 && (
+                                                <GenListPdfDetailTableTitles
+                                                    extraWidthExpandablePerColumn={extraWidthExpandablePerColumn}
+                                                    nonGroupedExpandableColumns={pdfSettings.nonGroupedExpandableColumns}
+                                                    nonGroupColumns={nonGroupColumns}
+                                                    columnDefMap={columnDefMap}
+                                                />
+                                            )
+                                        }
                                     </View>
                                 );
                             }
