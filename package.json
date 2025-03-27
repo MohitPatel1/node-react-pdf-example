@@ -6,7 +6,8 @@
     "serve": "nodemon src/app.ts",
     "build": "rm -rf build/ && tsc ",
     "serve:build": "PORT=80 node build/index.js",
-    "dev": "nodemon src/app.ts"
+    "dev": "nodemon src/app.ts",
+    "start": "node build/app.js"
   },
   "keywords": [],
   "author": "ryozm<ryozming@gmail.com>",
